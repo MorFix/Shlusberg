@@ -1,0 +1,22 @@
+{
+  "name": "shlusberg-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MorFix/Shlusberg.git"
+  },
+  "author": "Mor Cohen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MorFix/Shlusberg/issues"
+  },
+  "homepage": "https://github.com/MorFix/Shlusberg#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

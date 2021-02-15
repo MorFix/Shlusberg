@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "Shlusberg",
+  "version": "1.0.0",
+  "description": "The Shlusberg's extension",
+  "permissions": ["storage", "declarativeContent", "webRequest", "https://moodle.colman.ac.il/"],
+  "background": {
+    "scripts": ["src/database.js", "src/background.js"],
+    "persistent": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://moodle.colman.ac.il/*"],
+      "js": ["src/content.js"]
+    }
+  ],
+  "page_action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "images/icon-16x16.png",
+      "32": "images/icon-32x32.png",
+      "192": "images/icon-192x192.png",
+      "512": "images/icon-512x512.png"
+    }
+  },
+  "icons": {
+    "16": "images/icon-16x16.png",
+    "32": "images/icon-32x32.png",
+    "192": "images/icon-192x192.png",
+    "512": "images/icon-512x512.png"
+  }
+}
