@@ -11,7 +11,7 @@ const messageHandlers = {
 
 const sendAnswer = (questionContent, answerContent) => {
     Promise.all([getSetting('server'), getSetting('name')])
-        .then(([serverAddress, userName]) => fetch(serverAddress + '/answer', {
+        .then(([serverAddress, userName]) => fetch(serverAddress + '/answers', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json'

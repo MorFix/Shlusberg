@@ -1,13 +1,33 @@
 const inject = () => {
+    const cleanIdAttribute = node => {
+        node.removeAttribute('id');
+        Array.from(node.children).forEach(cleanIdAttribute);
+    };
+
+    const parseAnswer = (all, elem) => {
+        const input = elem.querySelector('input');
+
+        all[input.value] = {
+            content: elem.querySelector('div').innerText 
+        };
+
+        return all;
+    };
+    
     const parseQuestion = () => {
+        const [content] = document.getElementsByClassName('qtext')
+        const [answersContainer] = document.getElementsByClassName('answer');
+        
+        if (!content || !answersContainer) {
+            return null;
+        }
+
+        const contentClone = content.cloneNode(true);
+        cleanIdAttribute(contentClone);
+
         return {
-            content: 'How much is 5 + 3 ?',
-            answers: {
-                0: {content: '8'},
-                1: {content: '7'},
-                2: {content: '6'},
-                3: {content: '5'},
-            }
+            content: contentClone.innerHTML,
+            answers: Array.from(answersContainer.children).reduce(parseAnswer, {})
         }
     };
     
