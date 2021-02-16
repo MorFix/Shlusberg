@@ -1,4 +1,4 @@
-const quizUrl = 'moodle.colman.ac.il/mod/quiz';
+const mainUrl = 'moodle.colman.ac.il';
 let currentQuestion;
 
 const questionMessageHandler = question => {
@@ -57,7 +57,7 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
         sendAnswer(currentQuestion.content, selectedAnswer.content);
     }
  
-}, {urls: ["https://" + quizUrl + "/processattempt.php*"]}, ["requestBody"]);
+}, {urls: ["https://" + mainUrl + "/mod/quiz/processattempt.php*"]}, ["requestBody"]);
 
 // Grayscale the extension when necessary
 chrome.runtime.onInstalled.addListener(function() {
@@ -66,7 +66,7 @@ chrome.runtime.onInstalled.addListener(function() {
             {
                 conditions: [
                     new chrome.declarativeContent.PageStateMatcher({
-                        pageUrl: { urlContains: quizUrl },
+                        pageUrl: { urlContains: mainUrl },
                     })
                 ],
                 actions: [ new chrome.declarativeContent.ShowPageAction() ]
