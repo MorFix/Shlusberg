@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Shlusberg",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The Shlusberg's extension",
   "permissions": ["storage", "declarativeContent", "webRequest", "https://moodle.colman.ac.il/"],
   "background": {

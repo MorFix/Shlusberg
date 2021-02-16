@@ -1,7 +1,23 @@
 const inject = () => {
-    const cleanIdAttribute = node => {
+    const getImageBase64 = img => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        
+        return canvas.toDataURL("image/png");
+    };
+
+    const sanitiazeElements = node => {
         node.removeAttribute('id');
-        Array.from(node.children).forEach(cleanIdAttribute);
+        
+        if (node.tagName === 'IMG') {
+            node.setAttribute('src', getImageBase64(node));
+        }
+
+        Array.from(node.children).forEach(sanitiazeElements)
     };
 
     const parseAnswer = (all, elem) => {
@@ -23,7 +39,7 @@ const inject = () => {
         }
 
         const contentClone = content.cloneNode(true);
-        cleanIdAttribute(contentClone);
+        sanitiazeElements(contentClone);
 
         return {
             content: contentClone.innerHTML,

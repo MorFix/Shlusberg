@@ -24,8 +24,12 @@ const findSelectedAnswer = (question, formData) => {
     const answerNumberKey = Object.keys(formData).find(x => x.endsWith('_answer'));
     const [answerNumber] = formData[answerNumberKey]; 
 
-    if (answerNumber == null || answerNumber === '-1') {
+    if (answerNumber == null) {
         return;
+    }
+
+    if (answerNumber === '-1') {
+        return {content: null};
     }
 
     return question.answers[answerNumber];

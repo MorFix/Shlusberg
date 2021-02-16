@@ -5,7 +5,7 @@ const app = express();
 
 app.use(cors())
 app.use(express.static('./public'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb', extended: true}));
 
 const questions = [];
 
@@ -15,10 +15,20 @@ const clean = html => {
     return html;
 };
 
+const deleteQuestion = question => questions.splice(questions.indexOf(question));
+
+const deleteAnswer = (answer, question) => {
+    question.answers.splice(question.answers.indexOf(answer), 1);
+    if (!question.answers.length) {
+        deleteQuestion(question);
+    }
+};
+
 const addAnswer = (answer, remoteIp) => {
     const questionContent = clean(answer.questionContent);
     let existingQuestion = questions.find(x => x.content === questionContent);
-    
+    let isNewQuestion = !existingQuestion;
+
     if (!existingQuestion) {
         existingQuestion = {content: questionContent, answers: []};
         questions.push(existingQuestion);
@@ -27,10 +37,14 @@ const addAnswer = (answer, remoteIp) => {
     const currentAnswerForUser = existingQuestion.answers.find(x => isAnswerForUser(x, answer.userName, remoteIp));
     const answerContent = clean(answer.answerContent);
 
-    if (!currentAnswerForUser) {
-        existingQuestion.answers.push({remoteIp, userName: answer.userName, content: answerContent});
-    } else {
+    if (answerContent === null && currentAnswerForUser) {
+        deleteAnswer(currentAnswerForUser, existingQuestion);
+    } else if (currentAnswerForUser) {
         currentAnswerForUser.content = answerContent;
+    } else if (answerContent) {
+        existingQuestion.answers.push({remoteIp, userName: answer.userName, content: answerContent});
+    } else if (isNewQuestion) {
+        deleteQuestion(existingQuestion);
     }
 };
 
