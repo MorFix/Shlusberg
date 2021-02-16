@@ -1,63 +1,66 @@
-const groupAnswersByContent = answers => answers.reduce((all, answer) => {
-    all[answer.content] = all[answer.content] || [];
-    all[answer.content].push(answer);
+const groupResponsesByAnswer = responses => responses.reduce((answersToResponses, response) => {
+    answersToResponses[response.answerContent] = answersToResponses[response.answerContent] || [];
+    answersToResponses[response.answerContent].push(response);
 
-    return all;
+    return answersToResponses;
 }, {});
 
-const isBestAnswer = (answerContent, allAnswers) => {
-    const answersByContent = groupAnswersByContent(allAnswers);
-    let bestAnswerCount = 0;
+const renderAnswerContent = (content, isBest) => {
+    const elem = document.createElement('span');
     
-    for (let key in answersByContent) {
-        if (answersByContent[key].length > bestAnswerCount) {
-            bestAnswerCount = answersByContent[key].length;
-        }
+    elem.innerHTML = content;
+    elem.style.display = 'block';
+    
+    if (isBest) {
+        elem.style.fontWeight = 'bold';
+        elem.style.color = 'green';
     }
 
-    return answersByContent[answerContent].length === bestAnswerCount;
+    return elem;
 };
 
-const renderStats = (answerContent, allAnswers) => groupAnswersByContent(allAnswers)[answerContent]
-    .map(x => x.userName)
-    .join(', ')
+const renderAnswerStats = responses => {
+    const elem = document.createElement('span');
+    
+    elem.innerHTML = '(' + responses.map(x => x.userName).join(', ') + ')';
+    elem.style.display = 'block';
 
-const renderAnswer = (answerContent, question) => {
+    return elem;
+};
+
+const renderAnswer = (content, responses, isBest) => {
     const answerElem = document.createElement('div');
     answerElem.style.margin = '5px';
 
-    const answerContentElem = document.createElement('span');
-    answerContentElem.innerHTML = answerContent;
-    answerContentElem.style.display = 'block';
-    if (isBestAnswer(answerContent, question.answers)) {
-        answerContentElem.style.fontWeight = 'bold';
-        answerContentElem.style.color = 'green';
-    }
-
-    const answerStatsElem = document.createElement('span');
-    answerStatsElem.innerHTML = '(' + renderStats(answerContent, question.answers) + ')'
-    answerStatsElem.style.display = 'block';
-
-    answerElem.appendChild(answerContentElem)
-    answerElem.appendChild(answerStatsElem);
+    answerElem.appendChild(renderAnswerContent(content, isBest));
+    answerElem.appendChild(renderAnswerStats(responses));
 
     return answerElem; 
 };
 
-const renderQuestion = question => {
+const renderAnswers = responses => {
+    const answers = groupResponsesByAnswer(responses);
+    const bestAnswersResponsesCount = Math.max(...Object.values(answers).map(x => x.length));
+
+    return Object.keys(answers)
+        .map(content => renderAnswer(content,
+                                     answers[content],
+                                     answers[content].length === bestAnswersResponsesCount));
+};
+
+const renderQuestion = ({content, responses}) => {
     const questionElem = document.createElement('div');
     
-    const questionTitle = document.createElement('h1');
-    questionTitle.innerHTML = decodeURIComponent(question.content);
+    const questionContent = document.createElement('h3');
+    questionContent.innerHTML = content;
 
-    questionElem.appendChild(questionTitle);
+    questionElem.appendChild(questionContent);
 
-    for (let content in groupAnswersByContent(question.answers)) {
-        questionElem.appendChild(renderAnswer(content, question));
-    }
+    renderAnswers(responses).forEach(x => {
+        questionElem.appendChild(x);
+    });
 
-    const hr = document.createElement('hr');
-    questionElem.appendChild(hr);
+    questionElem.appendChild(document.createElement('hr'));
 
     return questionElem;
 };
@@ -72,9 +75,10 @@ const renderQuestions = questions => {
 };
 
 const init = () => {
-    fetch('/answers')
+    fetch('/responses')
         .then(res => res.json())
         .then(renderQuestions);
 };
 
-setInterval(init, 2000);
+setInterval(init, 4000);
+init();

@@ -1,0 +1,9 @@
+body {
+    direction: rtl;
+    text-align: center;
+    font-family: arial;
+}
+
+#questions img {
+    max-width: 100%;
+}

@@ -9,54 +9,54 @@ app.use(bodyParser.json({limit: '10mb', extended: true}));
 
 const questions = [];
 
-const isAnswerForUser = (answer, userName, remoteIp) => answer.userName === userName && answer.remoteIp === remoteIp;
+const isUserResponse = (response, userName, remoteIp) => response.userName === userName && response.remoteIp === remoteIp;
 
-const clean = html => {
-    return html;
-};
+const deleteQuestion = question => questions.splice(questions.indexOf(question), 1);
 
-const deleteQuestion = question => questions.splice(questions.indexOf(question));
-
-const deleteAnswer = (answer, question) => {
-    question.answers.splice(question.answers.indexOf(answer), 1);
-    if (!question.answers.length) {
+const deleteResponse = (response, question) => {
+    question.responses.splice(question.responses.indexOf(response), 1);
+    
+    if (!question.responses.length) {
         deleteQuestion(question);
     }
 };
 
-const addAnswer = (answer, remoteIp) => {
-    const questionContent = clean(answer.questionContent);
-    let existingQuestion = questions.find(x => x.content === questionContent);
+const addResponse = ({answerContent, questionContent, userName, remoteIp}) => {
+    let existingQuestion = questions.find(({content}) => content === questionContent);
     let isNewQuestion = !existingQuestion;
 
     if (!existingQuestion) {
-        existingQuestion = {content: questionContent, answers: []};
+        existingQuestion = {content: questionContent, responses: []};
         questions.push(existingQuestion);
     }
 
-    const currentAnswerForUser = existingQuestion.answers.find(x => isAnswerForUser(x, answer.userName, remoteIp));
-    const answerContent = clean(answer.answerContent);
+    const existingUserResponse = existingQuestion.responses.find(x => isUserResponse(x, userName, remoteIp));
 
-    if (answerContent === null && currentAnswerForUser) {
-        deleteAnswer(currentAnswerForUser, existingQuestion);
-    } else if (currentAnswerForUser) {
-        currentAnswerForUser.content = answerContent;
+    if (answerContent === null && existingUserResponse) {
+        deleteResponse(existingUserResponse, existingQuestion);
+    } else if (existingUserResponse) {
+        existingUserResponse.answerContent = answerContent;
     } else if (answerContent) {
-        existingQuestion.answers.push({remoteIp, userName: answer.userName, content: answerContent});
+        existingQuestion.responses.push({answerContent, userName, remoteIp});
     } else if (isNewQuestion) {
         deleteQuestion(existingQuestion);
     }
 };
 
-app.get('/answers', (req, res) => {
+app.get('/responses', (req, res) => {
     res.json(questions);
 });
 
-app.post('/answers', (req, res) => {
-    addAnswer(req.body, req.socket.remoteAddress);
+const handleNewResponse = (req, res) => {
+    addResponse({...req.body, remoteIp: req.socket.remoteAddress});
 
     res.end();
-});
+};
+
+app.post('/responses', handleNewResponse);
+
+// Backwards compatibility
+app.post('/answers', handleNewResponse);
 
 app.listen(80, () => {
     console.log(`Listening...`);
