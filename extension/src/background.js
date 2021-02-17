@@ -61,6 +61,12 @@ chrome.webRequest.onBeforeRequest.addListener(function(details) {
 
 // Grayscale the extension when necessary
 chrome.runtime.onInstalled.addListener(function() {
+    const DEFAULT_SERVER_ADDRESS = 'http://3.22.242.110';
+    const SETTING_SERVER = 'server';
+
+    window.getSetting(SETTING_SERVER)
+        .then(server => !server ? window.setSetting(SETTING_SERVER, DEFAULT_SERVER_ADDRESS) : Promise.resolve())
+
     chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
         chrome.declarativeContent.onPageChanged.addRules([
             {

@@ -1,7 +1,6 @@
 (() => {
     const DATABASE_NAME = 'shlusberg-db';
     const DATABASE_VERSION = 1;
-    const DEFAULT_SERVER_ADDRESS = 'http://3.22.242.110';
 
     const SETTINGS_STORE_NAME = 'settings';
 
@@ -20,8 +19,6 @@
         if (!upgradeDb.objectStoreNames.contains(SETTINGS_STORE_NAME)) {
             upgradeDb.createObjectStore(SETTINGS_STORE_NAME, {keyPath: 'key'});
         }
-
-        window.setSetting('server', DEFAULT_SERVER_ADDRESS);
     };
 
     const getDatabase = () => {
