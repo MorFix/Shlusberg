@@ -24,7 +24,7 @@ const inject = () => {
         const input = elem.querySelector('input');
 
         all[input.value] = {
-            content: elem.querySelector('div').innerText 
+            content: elem.querySelector('label').innerText 
         };
 
         return all;
