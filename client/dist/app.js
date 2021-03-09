@@ -75,7 +75,7 @@ const renderQuestions = questions => {
 };
 
 const init = () => {
-    fetch('/responses')
+    fetch('/response')
         .then(res => res.json())
         .then(renderQuestions);
 };

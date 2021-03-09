@@ -1,63 +1,30 @@
 const express = require('express');
+const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const app = express();
+const { getResponses, addQuestionResponse } = require('./responses-api');
 
-app.use(cors())
-app.use(express.static('./public'));
-app.use(bodyParser.json({limit: '10mb', extended: true}));
+app.use(cors());
+app.use(express.static('../client/dist'));
 
-const questions = [];
+app.use(bodyParser.json({ limit: '10mb', extended: true }));
 
-const isUserResponse = (response, userName, remoteIp) => response.userName === userName && response.remoteIp === remoteIp;
-
-const deleteQuestion = question => questions.splice(questions.indexOf(question), 1);
-
-const deleteResponse = (response, question) => {
-    question.responses.splice(question.responses.indexOf(response), 1);
-    
-    if (!question.responses.length) {
-        deleteQuestion(question);
-    }
-};
-
-const addResponse = ({answerContent, questionContent, userName, remoteIp}) => {
-    let existingQuestion = questions.find(({content}) => content === questionContent);
-    let isNewQuestion = !existingQuestion;
-
-    if (!existingQuestion) {
-        existingQuestion = {content: questionContent, responses: []};
-        questions.push(existingQuestion);
-    }
-
-    const existingUserResponse = existingQuestion.responses.find(x => isUserResponse(x, userName, remoteIp));
-
-    if (answerContent === null && existingUserResponse) {
-        deleteResponse(existingUserResponse, existingQuestion);
-    } else if (existingUserResponse) {
-        existingUserResponse.answerContent = answerContent;
-    } else if (answerContent) {
-        existingQuestion.responses.push({answerContent, userName, remoteIp});
-    } else if (isNewQuestion) {
-        deleteQuestion(existingQuestion);
-    }
-};
-
-app.get('/responses', (req, res) => {
-    res.json(questions);
+app.get('/response', (req, res) => {
+    res.json(getResponses());
 });
 
-const handleNewResponse = (req, res) => {
-    addResponse({...req.body, remoteIp: req.socket.remoteAddress});
+app.post('/response', (req, res) => {
+    const { questionsResponses, userName } = req.body;
+
+    questionsResponses.forEach(questionResponse => {
+        addQuestionResponse(questionResponse, { userName, remoteIp: req.socket.remoteAddress })
+    });
 
     res.end();
-};
+});
 
-app.post('/responses', handleNewResponse);
+const PORT = 80;
 
-// Backwards compatibility
-app.post('/answers', handleNewResponse);
-
-app.listen(80, () => {
-    console.log(`Listening...`);
+app.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}...`);
 });
