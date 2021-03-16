@@ -1,3 +1,11 @@
+import './App.css';
+
+export default function App() {
+    return (
+        <div></div>
+    )
+};
+
 const groupResponsesByAnswer = responses => responses.reduce((answersToResponses, response) => {
     answersToResponses[response.answerContent] = answersToResponses[response.answerContent] || [];
     answersToResponses[response.answerContent].push(response);
@@ -66,7 +74,7 @@ const renderQuestion = ({content, responses}) => {
 };
 
 const renderQuestions = questions => {
-    const container = document.getElementById('questions');
+    const container = document.getElementById('app');
     container.innerHTML = '';
 
     questions.forEach(question => {
@@ -80,5 +88,5 @@ const init = () => {
         .then(renderQuestions);
 };
 
-setInterval(init, 4000);
-init();
+//setInterval(init, 4000);
+//init();
