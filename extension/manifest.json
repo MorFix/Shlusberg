@@ -1,17 +1,28 @@
 {
   "manifest_version": 2,
-  "name": "Shlusberg",
-  "version": "1.0.5",
-  "description": "The Shlusberg's extension",
-  "permissions": ["declarativeContent", "webRequest", "https://moodle.colman.ac.il/"],
+  "name": "Knowledge",
+  "version": "2.0.0",
+  "description": "The automatic knowledge extension",
+  "permissions": [
+    "declarativeContent"
+  ],
   "background": {
-    "scripts": ["src/database.js", "src/background.js"],
-    "persistent": true
+    "scripts": [
+      "src/background/database.js",
+      "src/background/send-responses.js",
+      "src/background/setup.js"
+    ]
   },
   "content_scripts": [
     {
-      "matches": ["https://moodle.colman.ac.il/*"],
-      "js": ["src/content.js"]
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/content/parse-questions.js",
+        "src/content/get-responses.js",
+        "src/content/page.js"
+      ]
     }
   ],
   "page_action": {
@@ -24,9 +35,9 @@
     }
   },
   "icons": {
-    "16": "images/icon-16x16.png",
-    "32": "images/icon-32x32.png",
-    "192": "images/icon-192x192.png",
-    "512": "images/icon-512x512.png"
+    "16": "images/icon-active-16x16.png",
+    "32": "images/icon-active-32x32.png",
+    "192": "images/icon-active-192x192.png",
+    "512": "images/icon-active-512x512.png"
   }
 }

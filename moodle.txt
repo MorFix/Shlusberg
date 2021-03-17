@@ -1,0 +1,89 @@
+q85:1_p1: 3
+q85:1_p2: 4
+q85:1_p3: 3
+q85:1_p4: 
+q85:1_p5: 
+q85:1_p6: 
+q85:1_p7: 
+q85:2_p1: 4
+q85:2_p2: 2
+q85:2_p3: 3
+q85:2_p4: 1
+q85:2_p5: 0
+q85:3_p1: 1
+q85:3_p2: 4
+q85:3_p3: 3
+q85:3_p4: 
+q85:3_p5: 2
+q85:3_p6: 
+q85:3_p7: 
+q85:3_p8: 
+q85:3_p9: 
+q85:3_p10: 
+q85:4_c1: 45,135.00000190734863
+q85:4_c2: 226.387451171875,209.00000190734863
+q85:4_c3: 
+q85:4_c4: 
+q85:4_c5: 
+q85:4_c6: 
+q85:4_c7: 
+q85:4_-submit: Check
+q85:5_c1: 121.14999389648438,259.8000183105469
+q85:5_c2: 74.14999389648438,157.8125
+q85:5_c3: 264.1499938964844,281.8000030517578
+q85:5_c4: 
+q85:5_c5: 
+q85:5_c6: 
+q85:5_c7: 466.1499938964844,237.80001831054688
+q85:5_c8: 
+q85:5_c9: 
+
+
+q86:1_answer: 0
+q86:2_answer: 0
+q86:3_answer: asda
+q86:4_answer: 1
+q86:5_answer: 1
+
+
+
+
+
+
+
+q87:1_-seen: 1
+q87:2_answer: 1
+q87:3_sub0: 2 // Many combo, same options
+q87:3_sub1: 2
+q87:3_sub2: 0
+q87:3_sub3: 0
+q87:3_sub4: 0
+q87:4_answer: 5565 // Text
+q87:5_answer: 2 // Radio
+q87:6_answer: 000000 // Text
+q87:7_answer: asljdnasjdnaksjdnaksjdnaskjdnakjsdnjaksdjanskdnasdasd // Text
+q87:8_answer: asjaksnnnnnnnnn // Text
+q87:9_answer: 1 // Radio
+q87:10_choice0: 0 // Checks
+q87:10_choice1: 0
+q87:10_choice1: 1
+q87:10_choice2: 0
+q87:10_choice2: 1
+q87:10_choice3: 0
+q87:10_choice3: 1
+q87:10_choice4: 0
+q87:10_choice5: 01
+q87:11_sub1_answer: 3 // Many combo, different options
+q87:12_sub0: 2 
+q87:12_sub1: 0
+q87:12_sub2: 2
+q87:13_answer: <h4>Most useful question type:</h4> // Text
+<h4>Least useful question type:</h4>
+q87:13_answerformat: 1
+q87:13_attachments: 25985485
+
+
+select => every NAME new subquestion
+radio => every NAME new subquestion
+input => every NAME new subquestion
+(input|select|textarea)+(NAME=q86:INDEX_XXX) => count === 1 ? extractChoices() : new Subquestion()

@@ -1,0 +1,12 @@
+.answer {
+    margin: 5px;
+}
+
+.answer .content * {
+    display: inline;
+}
+
+.answer.best {
+    font-weight: bold;
+    color: green;
+}
