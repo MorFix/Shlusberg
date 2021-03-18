@@ -1,9 +1,14 @@
 import Answer from '../Answer/Answer';
 
+// TODO: Fix this elsewhere
+const removeAnswerNumber = answerContent => answerContent.replace(/<span class="answernumber"[\w\s=_"]*>[\w\.\s]*<\/span>/g, '');
+
 const getPossibleAnswers = question => {
     const answersFromResponse = question.responses.reduce((all, response) => {
         response.answers.forEach(x => {
-            all[x] = [...(all[x] || []), response];
+            const content = removeAnswerNumber(x);
+
+            all[content] = [...(all[content] || []), response];
         });
     
         return all;
@@ -11,6 +16,7 @@ const getPossibleAnswers = question => {
 
     if (question.choices) {
         question.choices
+            .map(removeAnswerNumber)
             .filter(x => !answersFromResponse.hasOwnProperty(x))
             .forEach(x => {
                 answersFromResponse[x] = [];
