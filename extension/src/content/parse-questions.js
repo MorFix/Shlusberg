@@ -9,55 +9,36 @@ class Question {
         }
     }
 }
-
-const getUrl = str => {
-    try {
-        return new URL(str);
-    } catch {
-        // Ignore and handle later on the flow
-    }
-};
-
+ 
 const getImageBase64 = img => {
-    const url = getUrl(img.src);
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width;
+    canvas.height = img.height;
 
-    // probably a base64 encoded source
-    if (!url) {
-        return Promise.resolve(img.src);
-    }
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
 
-    // probably a url that is CORS-wise accessible from the current page
-    return fetch(img.src)
-        .then(response => response.blob())
-        .then(blob => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-        }))
-        .catch(() => img.src);
+    return canvas.toDataURL("image/png");
 };
 
 const processQuestionContent = node => {
-    let promise = Promise.resolve();
-
     if (node.nodeType !== Node.TEXT_NODE) {
         node.removeAttribute('id');
 
         if (node.tagName === 'IMG') {
-            promise = getImageBase64(node)
-                .then(base64 => node.setAttribute('src', base64));
+            node.setAttribute('src', getImageBase64(node));
         }
     }
     
-    return promise.then(() => Promise.all([...node.childNodes].map(processQuestionContent)));
+    [...node.childNodes].forEach(processQuestionContent);
 };
 
 const getQuestionContent = contentNode => {
     const content = contentNode.cloneNode(true);
     
-    return processQuestionContent(content)
-        .then(() => content.innerHTML || content.textContent);
+    processQuestionContent(content);
+
+    return content.innerHTML || content.textContent;
 };
 
 const createChoices = (inputs, createChoice) => inputs.reduce((choices, choice, index) => ({...choices, ...createChoice(choice, index)}), {});
@@ -93,20 +74,19 @@ const getQuestionData = (id, uniqueInputs) => {
         const checkboxes = uniqueInputs.map(([_, checkbox]) => checkbox);
         const createChoice = (x, i) => ({[`choice${i}`]: x.nextElementSibling.innerHTML});
 
-        return Promise.resolve({choices: createChoices(checkboxes, createChoice)});
+        return {choices: createChoices(checkboxes, createChoice)};
     }
 
     if (isSingleChoiceQuestion(uniqueInputs)) {
-        return Promise.resolve({choices: createChoices(uniqueInputs[0], x => ({[x.value]: x.nextElementSibling.innerHTML}))});
+        return {choices: createChoices(uniqueInputs[0], x => ({[x.value]: x.nextElementSibling.innerHTML}))}
     }
 
     if (isEssayQuestion(uniqueInputs) || isTextQuestion(uniqueInputs)) {
-        return Promise.resolve({});
+        return {};
     }
 
     if (isMatchingQuestion(uniqueInputs)) {
-        return Promise.all(uniqueInputs.map(([x]) => parseMatchingQuestion(x)))
-            .then((subQuestions) => ({subQuestions}));
+        return {subQuestions: uniqueInputs.map(([x]) => parseMatchingQuestion(x))};
     }
 
     // TODO: Add c, p
@@ -141,6 +121,8 @@ globalThis.parseQuestion = (id, form) => {
         return null;
     }
 
-    return Promise.all([getQuestionContent(contentNode), getQuestionData(id, uniqueInputs)])
-        .then((content, {choices, subQuestions}) => new Question(id, content, choices, subQuestions));
+    const content = getQuestionContent(contentNode);
+    const {choices, subQuestions} = getQuestionData(id, uniqueInputs);
+
+    return new Question(id, content, choices, subQuestions);
 };
