@@ -1,0 +1,9 @@
+.response-box {
+    flex-basis: 33%;
+}
+
+@media only screen and (max-width: 600px) {
+    .response-box {
+        flex-basis: 100%;
+    }
+}

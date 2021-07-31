@@ -1,6 +1,7 @@
 import Box from '@material-ui/core/Box';
 
 import Question from '../Question/Question';
+import './Responses.css';
 
 const createQuestion = ({ content, choices, subResponses }) => {
     const question = { content };
@@ -39,11 +40,11 @@ const getQuestionsWithResponses = responses => Object.values(responses.reduce(gr
 
 export default function Responses({ responses }) {
     return (
-        <Box display='flex' flexDirection='column' justifyContent='center' alignItems='center'>
+        <Box display='flex' flexWrap='wrap' flexGrow='1' flexDirection='row' justifyContent='center'>
             {
                 getQuestionsWithResponses(responses)
                     .map(x => (
-                        <Box key={x.content}>
+                        <Box key={x.content} className='response-box'>
                             <Question question={x} />
                         </Box>
                     ))

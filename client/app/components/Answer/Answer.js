@@ -8,8 +8,8 @@ export default function Answer({content, responses, isBest}) {
     const parsedContent = parse(content);
 
     return (
-        <Typography>
-            <Box flexDirection='column' className='answer' fontWeight={isBest ? 'fontWeightBold' : 'regular'} color={isBest ? 'success.main' : 'text.primary'}>
+        <Typography style={{ fontWeight: isBest ? 'bold' : 'regular' }}>
+            <Box flexDirection='column' className='answer' color={isBest ? 'success.main' : 'text.primary'}>
                 <Box className='content'>
                     {parsedContent}
                 </Box>

@@ -1,3 +1,5 @@
+globalThis.EMPTY_SELECTION_VALUE = '-1';
+
 class Question {
     constructor(id, content, choices, subQuestions = []) {
         this.id = id;
@@ -9,46 +11,89 @@ class Question {
         }
     }
 }
- 
+
+const getUrl = str => {
+    try {
+        return new URL(str);
+    } catch {
+        // Ignore and handle later on the flow
+    }
+};
+
 const getImageBase64 = img => {
-    const canvas = document.createElement("canvas");
-    canvas.width = img.width;
-    canvas.height = img.height;
+    const url = getUrl(img.src);
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
+    // probably a base64 encoded source
+    if (!url) {
+        return Promise.resolve(img.src);
+    }
 
-    return canvas.toDataURL("image/png");
+    // probably a url that is CORS-wise accessible from the current page
+    return fetch(img.src)
+        .then(response => response.blob())
+        .then(blob => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        }))
+        .catch(() => img.src);
+};
+
+const replaceImagesWithBase64 = node => {
+    if (node.tagName === 'IMG') {
+        return getImageBase64(node).then(base64 => node.setAttribute('src', base64));
+    }
+
+    return Promise.resolve();
 };
 
 const processQuestionContent = node => {
+    let promise = Promise.resolve();
+
     if (node.nodeType !== Node.TEXT_NODE) {
+        // To prevent uniqness false negative
         node.removeAttribute('id');
 
-        if (node.tagName === 'IMG') {
-            node.setAttribute('src', getImageBase64(node));
-        }
+        // To remove controls inside the question content
+        [...node.querySelectorAll('.control')].forEach(x => {
+            x.parentNode.replaceChild(document.createTextNode('[?]'), x);
+        });
+
+        promise = promise.then(() => replaceImagesWithBase64(node));
     }
     
-    [...node.childNodes].forEach(processQuestionContent);
+    return promise.then(() => Promise.all([...node.childNodes].map(processQuestionContent)));
 };
 
-const getQuestionContent = contentNode => {
+const processChoiceContent = node => {
+    let promise = Promise.resolve();
+
+    if (node.nodeType !== Node.TEXT_NODE) {
+        // To prevent uniqness false negative
+        node.removeAttribute('id');
+
+        promise = promise.then(() => replaceImagesWithBase64(node));
+    }
+    
+    return promise.then(() => Promise.all([...node.childNodes].map(processChoiceContent)));
+};
+
+const getContent = (contentNode, processContent) => {
     const content = contentNode.cloneNode(true);
     
-    processQuestionContent(content);
-
-    return content.innerHTML || content.textContent;
+    return processContent(content)
+        .then(() => content.innerHTML || content.textContent);
 };
 
-const createChoices = (inputs, createChoice) => inputs.reduce((choices, choice, index) => ({...choices, ...createChoice(choice, index)}), {});
+const createChoices = (inputs, createChoice) => Promise.all(inputs.map(createChoice))
+    .then(result => result.reduce((choices, choice) => ({...choices, ...choice}), {}))
 
-const parseMatchingQuestion = select => {
-    const content = getQuestionContent(select.parentNode.previousElementSibling);
-    const choices = createChoices([...select], x => ({[x.value]: x.innerHTML}));
-
-    return new Question(null, content, choices);
-};
+const parseMatchingQuestion = select => Promise.all([
+        getContent(select.parentNode.previousSibling, processQuestionContent),
+        createChoices([...select], x => ({[x.value]: x.innerHTML}))
+    ])
+    .then(([content, choices]) => new Question(select.name, content, choices))
 
 const checkAllInputs = (uniqueInputs, inputType, inputTagName) => uniqueInputs
     .every(([{type, tagName}]) => inputType && (type === inputType) ||
@@ -61,32 +106,40 @@ const isMultiplecChoicesQuestion = (id, uniqueInputs) => {
 };
 
 const isSingleChoiceQuestion = uniqueInputs => uniqueInputs.length === 1 && uniqueInputs[0].every(x => x.type === 'radio');
-
 const isEssayQuestion = uniqueInputs => checkAllInputs(uniqueInputs, 'hidden', 'TEXTAREA');
-const isMatchingQuestion = uniqueInputs => checkAllInputs(uniqueInputs, null, 'SELECT');
+const isSelectBoxesQuestion = uniqueInputs => checkAllInputs(uniqueInputs, null, 'SELECT');
 
 const isTextQuestion = uniqueInputs => uniqueInputs.length === 1 &&
     uniqueInputs[0].length === 1 &&
     uniqueInputs[0][0].type === 'text';
 
 const getQuestionData = (id, uniqueInputs) => {
+    // Checkbox choices
     if (isMultiplecChoicesQuestion(id, uniqueInputs)) {
         const checkboxes = uniqueInputs.map(([_, checkbox]) => checkbox);
-        const createChoice = (x, i) => ({[`choice${i}`]: x.nextElementSibling.innerHTML});
+        const createChoice = (x, i) => getContent(x.nextElementSibling, processChoiceContent)
+            .then(content => ({[`choice${i}`]: content}))
 
-        return {choices: createChoices(checkboxes, createChoice)};
+        return createChoices(checkboxes, createChoice).then(choices => ({choices}));
     }
 
+    // Radio choices
     if (isSingleChoiceQuestion(uniqueInputs)) {
-        return {choices: createChoices(uniqueInputs[0], x => ({[x.value]: x.nextElementSibling.innerHTML}))}
+        const radioInputs = uniqueInputs[0].filter(x => x.value !== globalThis.EMPTY_SELECTION_VALUE)
+        const createChoice = x => getContent(x.nextElementSibling, processChoiceContent)
+            .then(content => ({[x.value]: content}))
+
+        return createChoices(radioInputs, createChoice).then(choices => ({choices}));
     }
 
+    // Text questions
     if (isEssayQuestion(uniqueInputs) || isTextQuestion(uniqueInputs)) {
-        return {};
+        return Promise.resolve({});
     }
 
-    if (isMatchingQuestion(uniqueInputs)) {
-        return {subQuestions: uniqueInputs.map(([x]) => parseMatchingQuestion(x))};
+    // Select box (or boxes)
+    if (isSelectBoxesQuestion(uniqueInputs)) {
+        return Promise.all(uniqueInputs.map(([x]) => parseMatchingQuestion(x))).then(subQuestions => ({subQuestions}));
     }
 
     // TODO: Add c, p
@@ -115,14 +168,13 @@ globalThis.parseQuestion = (id, form) => {
     }
 
     const [contentNode] = questionContainer.getElementsByClassName('qtext');
+    const questionDataPromise = getQuestionData(id, uniqueInputs)
     
     // TODO: What to do when the content isn't wrapped with .qtext ? see embedded
-    if (!contentNode) {
+    if (!contentNode || !questionDataPromise) {
         return null;
     }
 
-    const content = getQuestionContent(contentNode);
-    const {choices, subQuestions} = getQuestionData(id, uniqueInputs);
-
-    return new Question(id, content, choices, subQuestions);
+    return Promise.all([getContent(contentNode, processQuestionContent), questionDataPromise])
+        .then(([content, {choices, subQuestions}]) => new Question(id, content, choices, subQuestions));
 };

@@ -11,6 +11,7 @@ const config = merge(common, {
     plugins: [new ReactRefreshPlugin(), new HotModuleReplacementPlugin()],
     devtool: 'source-map',
     devServer: {
+        host: '0.0.0.0',
         hot: true,
         proxy: {
             '/response': {

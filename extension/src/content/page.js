@@ -9,8 +9,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
-const onSubmit = ({ target }) => {
-    chrome.runtime.sendMessage({ name: 'sendResponses', data: getResponses(target) });
+const onSubmit = event => { 
+    getResponses(event.target).then(responses => {
+        chrome.runtime.sendMessage({ name: 'sendResponses', data: responses });
+    });
 };
 
 if (hasQuestions) {
