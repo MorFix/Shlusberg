@@ -69,8 +69,7 @@ const getResponse = ({content, choices, subQuestions}, responseData, index = nul
 globalThis.getResponses = form => {
     const questionsResponsesData = groupResponseDataByQuestion(new FormData(form));
 
-    return Object.keys(questionsResponsesData)
-        .map(x => globalThis.parseQuestion(x, form))
-        .filter(Boolean)
-        .map(question => getResponse(question, questionsResponsesData[question.id]));
+    return Promise.all(Object.keys(questionsResponsesData)
+        .map(x => globalThis.parseQuestion(x, form)))
+        .then(result => result.filter(Boolean).map(question => getResponse(question, questionsResponsesData[question.id])));
 };
