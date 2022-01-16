@@ -1,16 +1,17 @@
 const nameInput = document.getElementById('nameInput');
 const serverInput = document.getElementById('serverInput');
 
-const backgroundPage = chrome.extension.getBackgroundPage();
 const POPUP_NAME = 'popup';
+const SET_HAS_QUESTIONS_EVENT_NAME = 'setPageQuestionsState';
 
+const port = chrome.runtime.connect({name: POPUP_NAME});
 const registerSetting = (input, setting, callback) => {
     input.addEventListener('change', () => {
-        backgroundPage.setSetting(setting, input.value);
+        port.postMessage({ name: 'setSetting', data: {setting, value: input.value} });
         callback && callback(input);
     });
 
-    backgroundPage.getSetting(setting).then(value => {
+    port.postMessage({ name: 'getSetting', data: {setting} }, value => {
         if (value) {
             input.value = value;
             callback && callback(input);
@@ -25,7 +26,7 @@ const onServerChange = input => {
 registerSetting(document.getElementById('nameInput'), 'name');
 registerSetting(document.getElementById('serverInput'), 'server', onServerChange);
 
-const onPageStateChanged = hasQuestions => {
+const setHasQuestionsAlert = hasQuestions => {
     const warning = document.getElementById('warning');
 
     if (!hasQuestions) {
@@ -37,11 +38,20 @@ const onPageStateChanged = hasQuestions => {
     warning.style.display = '';
 };
 
-chrome.tabs.query({active: true, currentWindow: true}, ([{id}]) => {    
-    chrome.tabs.sendMessage(id, 'getPageQuestionsState', {}, onPageStateChanged);
+// Query the page for to decide whether we have questions
+chrome.tabs.query({active: true, currentWindow: true}, ([{id}]) => {
+    chrome.tabs.sendMessage(id, 'getPageQuestionsState', {}, setHasQuestionsAlert);
 });
 
-const unsubscribe = backgroundPage.onPageStateChanged(onPageStateChanged)
+chrome.runtime.onMessage.addListener(({ name, data: hasQuestions }) => {
+    if (name === SET_HAS_QUESTIONS_EVENT_NAME) {
+        setHasQuestionsAlert(hasQuestions);
+    }
+});
 
-const port = chrome.runtime.connect({name: POPUP_NAME});
-port.onDisconnect.addListener(unsubscribe);
+// chrome.runtime.sendMessage({ name: 'setPageStateChangedListener', data: onAfterQuestionsSearch }, () => {
+//     const port = chrome.runtime.connect({name: POPUP_NAME});
+//     port.onDisconnect.addListener(() => {
+//         chrome.runtime.sendMessage({ name: 'removePageStateChangedListener' })
+//     });
+// });

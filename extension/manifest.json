@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Knowledge",
   "version": "2.1.0",
   "description": "The automatic knowledge extension",
@@ -7,11 +7,7 @@
     "declarativeContent"
   ],
   "background": {
-    "scripts": [
-      "src/background/database.js",
-      "src/background/send-responses.js",
-      "src/background/setup.js"
-    ]
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
@@ -25,7 +21,7 @@
       ]
     }
   ],
-  "page_action": {
+  "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {
       "16": "images/icon-16x16.png",

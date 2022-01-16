@@ -1,7 +1,12 @@
+const SET_HAS_QUESTIONS_EVENT_NAME = 'setPageQuestionsState';
+
 const messageHandlers = {};
-chrome.runtime.onMessage.addListener(({ name, data }, sender) => {
+chrome.runtime.onMessage.addListener(({ name, data }, sender, sendResponse) => {
     if (messageHandlers[name]) {
-        messageHandlers[name](data, sender);
+        const result = messageHandlers[name](data, sender);
+        if (result !== undefined) {
+            result.then ? result.then(r => sendResponse(r)) : sendResponse(result)
+        }
     }
 });
 
@@ -13,27 +18,18 @@ const addMessageListener = (name, callback) => {
     };
 };
 
-const onPageStateChangedListeners = [];
-const onPageStateChanged = (callback) => {
-    onPageStateChangedListeners.push(callback);
-
-    return () => {
-        onPageStateChangedListeners.splice(onPageStateChangedListeners.indexOf(callback), 1);
-    };
-};
-
 const setPageAction = ({ icon, title }, { tab: { id } }) => {
     const tab = { tabId: id };
 
     if (icon) {
-        chrome.pageAction.setIcon({ ...tab, path: icon });
+        chrome.action.setIcon({ ...tab, path: icon });
     }
 
-    chrome.pageAction.setTitle({ ...tab, title });
+    chrome.action.setTitle({ ...tab, title });
 };
 
 // Handle a message which indicates on finding a questions in the page
-onPageStateChanged((hasQuestions, sender) => {
+const setHasQuestionsIcon = (hasQuestions, sender) => {
     if (!hasQuestions) {
         setPageAction({ title: 'No questions found in this page' }, sender);
 
@@ -41,16 +37,12 @@ onPageStateChanged((hasQuestions, sender) => {
     }
 
     setPageAction({ title: 'Knowledge is active!', icon: '../images/icon-active-32x32.png' }, sender);
-});
-
-const setPageQuestionsState = (hasQuestions, sender) => {
-    onPageStateChangedListeners.forEach(listener => {
-        listener(hasQuestions, sender);
-    });
 };
 
-addMessageListener('setPageQuestionsState', setPageQuestionsState);
+addMessageListener(SET_HAS_QUESTIONS_EVENT_NAME, setHasQuestionsIcon);
 addMessageListener('sendResponses', globalThis.sendResponses);
+addMessageListener('setSetting', ({setting, value}) => globalThis.setSetting(setting, value))
+addMessageListener('getSetting', ({setting}) => globalThis.getSetting(setting))
 
 // Add default settings & make the extension always available
 chrome.runtime.onInstalled.addListener(() => {
@@ -71,4 +63,3 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onConnect.addListener(() => {});
-globalThis.onPageStateChanged = onPageStateChanged;
