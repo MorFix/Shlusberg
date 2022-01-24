@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "paths": {
+    "/response": {
+      "name": "/response",
+      "lambdaFunction": "shlusbergexpress",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "production": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-shlusbergclient-production-100408-authRole",
+      "UnauthRoleArn": "arn:aws:iam::919384237558:role/amplify-shlusbergclient-production-100408-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::919384237558:role/amplify-shlusbergclient-production-100408-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-shlusbergclient-production-100408-deployment",
+      "UnauthRoleName": "amplify-shlusbergclient-production-100408-unauthRole",
+      "StackName": "amplify-shlusbergclient-production-100408",
+      "StackId": "arn:aws:cloudformation:us-east-2:919384237558:stack/amplify-shlusbergclient-production-100408/f8ae0640-7cfc-11ec-986a-0a981f8cbda4",
+      "AmplifyAppId": "d1eofpa2i5g1e9"
+    },
+    "categories": {
+      "function": {
+        "shlusbergexpress": {
+          "deploymentBucketName": "amplify-shlusbergclient-production-100408-deployment",
+          "s3Key": "amplify-builds/shlusbergexpress-6e6d464847516d504f76-build.zip"
+        }
+      }
+    }
+  }
+}

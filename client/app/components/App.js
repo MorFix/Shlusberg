@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
+import Amplify, { API } from 'aws-amplify';
+import awsconfig from '../aws-exports';
+
+Amplify.configure(awsconfig);
 
 import createMuiTheme from '@material-ui/core/styles/createMuiTheme';
 import CssBaseline from "@material-ui/core/CssBaseline";
@@ -21,9 +25,7 @@ export default function App() {
     const [responses, setResponses] = useState([]);
 
     const init = useCallback(() => {
-        fetch('/response')
-            .then(res => res.json())
-            .then(setResponses)
+        API.get('shlusbergserver', '/response').then(setResponses)
     });
 
     useEffect(() => {

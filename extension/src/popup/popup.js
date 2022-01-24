@@ -41,6 +41,9 @@ chrome.tabs.query({active: true, currentWindow: true}, ([{id}]) => {
     chrome.tabs.sendMessage(id, 'getPageQuestionsState', {}, onPageStateChanged);
 });
 
+const manifest = chrome.runtime.getManifest();
+document.getElementById('version').innerHTML = `Version: ${manifest.version}`
+
 const unsubscribe = backgroundPage.onPageStateChanged(onPageStateChanged)
 
 const port = chrome.runtime.connect({name: POPUP_NAME});
