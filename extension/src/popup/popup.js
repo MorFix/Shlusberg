@@ -18,8 +18,12 @@ const registerSetting = (input, setting, callback) => {
     });
 };
 
-const onServerChange = input => {  
-    document.getElementById('serverLink').href = input.value || '#';
+const onServerChange = input => {
+    const linkTag = document.getElementById('serverLink');
+    
+    backgroundPage.getBaseAddress(input.value)
+        .then(address => linkTag.href = address)
+        .catch(() => linkTag.address = '#');
 };
 
 registerSetting(document.getElementById('nameInput'), 'name');
@@ -40,6 +44,9 @@ const onPageStateChanged = hasQuestions => {
 chrome.tabs.query({active: true, currentWindow: true}, ([{id}]) => {    
     chrome.tabs.sendMessage(id, 'getPageQuestionsState', {}, onPageStateChanged);
 });
+
+const manifest = chrome.runtime.getManifest();
+document.getElementById('version').innerHTML = `Version: ${manifest.version}`
 
 const unsubscribe = backgroundPage.onPageStateChanged(onPageStateChanged)
 

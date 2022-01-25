@@ -1,3 +1,5 @@
+const ACCESS_KEY = 'Aa123456'
+
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -9,7 +11,18 @@ app.use(express.static('../client/dist'));
 
 app.use(bodyParser.json({ limit: '10mb', extended: true }));
 
-app.get('/response', (req, res) => {
+const keyMiddleware = (req, res, next) => {
+    if (req.query['key'] === ACCESS_KEY) {
+        next();
+
+        return;
+    }
+
+    res.status(403)
+    res.send({error: 'Forbidden'})
+};
+
+app.get('/response', keyMiddleware, (req, res) => {
     res.json(getResponses());
 });
 
