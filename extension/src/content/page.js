@@ -9,9 +9,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 });
 
+const captureSubmitter = (targetForm, submitter) => {
+    if (submitter) {
+        const formDataHandler = formDataEvent => {
+            formDataEvent.formData.set(submitter.name, submitter.value);
+            targetForm.removeEventListener('formdata', formDataHandler);
+        };
+
+        targetForm.addEventListener('formdata', formDataHandler)
+    }
+};
+
 const onSubmit = event => { 
-    getResponses(event.target).then(responses => {
+    event.preventDefault();
+
+    const target = event.target;
+    const responsesPromise = getResponses(target);
+    captureSubmitter(target, event.submitter)
+    
+    responsesPromise.then(responses => {
         chrome.runtime.sendMessage({ name: 'sendResponses', data: responses });
+        target.submit();
     });
 };
 

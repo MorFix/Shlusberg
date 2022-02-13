@@ -1,6 +1,6 @@
 const responses = [];
 
-const isUserResponse = (response, user) => response.user.name === user.name && response.user.remoteIp === user.remoteIp;
+const isUserResponse = (response, user) => response.user.name === user.name // && response.user.remoteIp === user.remoteIp; // TODO: handle load balancer
 
 const hasAnswer = ({answers}) => !answers.length || answers.some(Boolean);
 const hasAnswers = response => {

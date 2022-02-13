@@ -48,35 +48,31 @@ const replaceImagesWithBase64 = node => {
     return Promise.resolve();
 };
 
-const processQuestionContent = node => {
-    let promise = Promise.resolve();
-
-    if (node.nodeType !== Node.TEXT_NODE) {
+const processQuestionContent = node => {    
+    if (node.removeAttribute) {
         // To prevent uniqness false negative
         node.removeAttribute('id');
+    }
 
+    if (node.querySelectorAll) {
         // To remove controls inside the question content
         [...node.querySelectorAll('.control')].forEach(x => {
             x.parentNode.replaceChild(document.createTextNode('[?]'), x);
         });
-
-        promise = promise.then(() => replaceImagesWithBase64(node));
     }
-    
-    return promise.then(() => Promise.all([...node.childNodes].map(processQuestionContent)));
+
+    return replaceImagesWithBase64(node)
+        .then(() => Promise.all([...node.childNodes].map(processQuestionContent)));
 };
 
 const processChoiceContent = node => {
-    let promise = Promise.resolve();
-
-    if (node.nodeType !== Node.TEXT_NODE) {
+    if (node.removeAttribute) {
         // To prevent uniqness false negative
         node.removeAttribute('id');
-
-        promise = promise.then(() => replaceImagesWithBase64(node));
     }
     
-    return promise.then(() => Promise.all([...node.childNodes].map(processChoiceContent)));
+    return replaceImagesWithBase64(node)
+        .then(() => Promise.all([...node.childNodes].map(processChoiceContent)));
 };
 
 const getContent = (contentNode, processContent) => {
